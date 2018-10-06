@@ -1,0 +1,9 @@
+Flask==0.12.2
+dash
+dash_core_components
+dash_html_components
+plotly
+colorlover
+palettable
+pandas
+numpy
