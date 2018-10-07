@@ -1,4 +1,4 @@
-Flask==0.12.2
+Flask==0.12.3
 dash
 dash_core_components
 dash_html_components
@@ -7,4 +7,4 @@ colorlover
 palettable
 pandas
 numpy
-matplotlob
+matplotlib
