@@ -7,3 +7,4 @@ colorlover
 palettable
 pandas
 numpy
+matplotlob

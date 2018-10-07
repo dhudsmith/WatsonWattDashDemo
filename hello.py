@@ -35,67 +35,6 @@ elif os.path.isfile('vcap-local.json'):
         # client = Cloudant(user, password, url=url, connect=True)
         # db = client.create_database(db_name, throw_on_exists=False)
 
-# On IBM Cloud Cloud Foundry, get the port number from the environment variable PORT
-# When running this app on the local machine, default the port to 8000
-# port = int(os.getenv('PORT', 8000))
-
-# @app.route('/')
-# def root():
-#     return app.send_static_file('index.html')
-
-# /* Endpoint to greet and add a new visitor to database.
-# * Send a POST request to localhost:8000/api/visitors with body
-# * {
-# *     "name": "Bob"
-# * }
-# */
-# @app.route('/api/visitors', methods=['GET'])
-# def get_visitor():
-#     if client:
-#         return jsonify(list(map(lambda doc: doc['name'], db)))
-#     else:
-#         print('No database')
-#         return jsonify([])
-#
-# /**
-#  * Endpoint to get a JSON array of all the visitors in the database
-#  * REST API example:
-#  * <code>
-#  * GET http://localhost:8000/api/visitors
-#  * </code>
-#  *
-#  * Response:
-#  * [ "Bob", "Jane" ]
-#  * @return An array of all the visitor names
-#  */
-# @app.route('/api/visitors', methods=['POST'])
-# def put_visitor():
-#     user = request.json['name']
-#     data = {'name':user}
-#     if client:
-#         my_document = db.create_document(data)
-#         data['_id'] = my_document['_id']
-#         return jsonify(data)
-#     else:
-#         print('No database')
-#         return jsonify(data)
-#
-# @atexit.register
-# def shutdown():
-#     if client:
-#         client.disconnect()
-#
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=port, debug=True)
-
-
-#
-#
-# Dashboard code
-#
-#
-
-
 ##
 ## Imports
 import markdown_text
@@ -114,6 +53,7 @@ import numpy as np
 from pprint import pprint
 import json
 import logging
+from matplotlib import cm
 
 # set the logging level
 logging.basicConfig(level=logging.INFO)
@@ -121,11 +61,15 @@ logging.basicConfig(level=logging.INFO)
 # Colors
 from palettable.colorbrewer import qualitative as colors
 
-def getColorScale(colorCode, numInterp=200):
-    scale = cl.to_rgb(cl.interp(cl.scales['9']['seq'][colorCode], numInterp))
-    scale = [[x**2, y] for x, y in zip(np.linspace(0,1, numInterp), scale)]
+def getColorScale(colorCode, colorrange, nbins=50):
+    cmap = cm.get_cmap(colorCode)
+    gradient = np.linspace(colorrange[0], colorrange[1], nbins)
+    colors = ['rgb(%i, %i, %i)' % (x[0],x[1],x[2]) for x in cmap(gradient)[:,:3]*256]
+    scale = [[x, y] for x, y in zip(gradient, colors)]
 
     return scale
+
+pprint(getColorScale('Reds', [0,1], 40))
 
 
 styles = {
@@ -138,11 +82,11 @@ styles = {
 colorInfo = {
     'sentiment': 'RdBu',
     'emotion': {
-        'anger': {'data': 'watson_emotion_anger', 'color': getColorScale('YlOrBr')},
-        'disgust': {'data': 'watson_emotion_disgust', 'color': getColorScale('YlOrBr')},
-        'fear': {'data': 'watson_emotion_fear', 'color': getColorScale('YlOrBr')},
-        'joy': {'data': 'watson_emotion_joy', 'color': getColorScale('YlOrBr')},
-        'sadness': {'data': 'watson_emotion_sadness', 'color': getColorScale('YlOrBr')},
+        'anger': {'data': 'watson_emotion_anger', 'color': 'Reds'},
+        'disgust': {'data': 'watson_emotion_disgust', 'color': 'Greens'},
+        'fear': {'data': 'watson_emotion_fear', 'color': 'Purples'},
+        'joy': {'data': 'watson_emotion_joy', 'color': 'YlOrBr'},
+        'sadness': {'data': 'watson_emotion_sadness', 'color': 'Blues'},
     }
 }
 
@@ -296,9 +240,15 @@ def plotHistogram(x, color_var, color_range, colorscale, nbins):
                            cmin=color_range[0],
                            cmax=color_range[1],
                            color=color_var,
-                           colorscale=colorscale  # choose a colorscale
-                       ),
-                       nbinsx=40
+                           colorscale=colorscale,  # choose a colorscale
+                           autocolorscale=False
+                           ),
+                       xbins=dict(
+                           start=color_range[0],
+                           end=color_range[1],
+                           size=(color_range[1]-color_range[0])/float(nbins)
+                           ),
+                       autobinx=False
                        )
 
     return plt
@@ -323,24 +273,25 @@ def get3dfigure(dell, type, subtype='anger', camera=default_camera):
         reversescale = True
     elif type == 'emotion':
         color_range = [0,1]
+        color_bins=500
         label_colors = 'aliceblue'
         reversescale=False
         # different colors for different sub-types
         if subtype==1:
             color_var = dell['watson']['emotion']['anger']
-            color_map = colorInfo['emotion']['anger']['color']
+            color_map = getColorScale(colorInfo['emotion']['anger']['color'], color_range, nbins=color_bins)
         elif subtype == 2:
             color_var = dell['watson']['emotion']['disgust']
-            color_map = colorInfo['emotion']['disgust']['color']
+            color_map = getColorScale(colorInfo['emotion']['disgust']['color'], color_range, nbins=color_bins)
         elif subtype == 3:
             color_var = dell['watson']['emotion']['fear']
-            color_map = colorInfo['emotion']['fear']['color']
+            color_map = getColorScale(colorInfo['emotion']['fear']['color'], color_range, nbins=color_bins)
         elif subtype == 4:
             color_var = dell['watson']['emotion']['joy']
-            color_map = colorInfo['emotion']['joy']['color']
+            color_map = getColorScale(colorInfo['emotion']['joy']['color'], color_range, nbins=color_bins)
         elif subtype == 5:
             color_var = dell['watson']['emotion']['sadness']
-            color_map = colorInfo['emotion']['sadness']['color']
+            color_map = getColorScale(colorInfo['emotion']['sadness']['color'], color_range, nbins=color_bins)
         else:
             logging.error("Invalid 3d plot sub-type: %s", subtype)
             raise Exception
@@ -403,23 +354,23 @@ def getHistFigure(dell, type, subtype=None):
         # sub-type differences
         if subtype ==1:
             x = dell['watson']['emotion']['anger']
-            colorscale = colorInfo['emotion']['anger']['color']
+            colorscale = getColorScale(colorInfo['emotion']['anger']['color'], color_range, nbins=nbins)
             xaxis['title']='Anger'
         elif subtype==2:
             x = dell['watson']['emotion']['disgust']
-            colorscale = colorInfo['emotion']['disgust']['color']
+            colorscale = getColorScale(colorInfo['emotion']['disgust']['color'],color_range, nbins=nbins)
             xaxis['title'] = 'Disgust'
         elif subtype==3:
             x = dell['watson']['emotion']['fear']
-            colorscale = colorInfo['emotion']['fear']['color']
+            colorscale = getColorScale(colorInfo['emotion']['fear']['color'], color_range, nbins=nbins)
             xaxis['title'] = 'Fear'
         elif subtype==4:
             x = dell['watson']['emotion']['joy']
-            colorscale = colorInfo['emotion']['joy']['color']
+            colorscale = getColorScale(colorInfo['emotion']['joy']['color'], color_range, nbins=nbins)
             xaxis['title'] = 'Joy'
         elif subtype==5:
             x = dell['watson']['emotion']['sadness']
-            colorscale = colorInfo['emotion']['sadness']['color']
+            colorscale = getColorScale(colorInfo['emotion']['sadness']['color'], color_range, nbins=nbins)
             xaxis['title'] = 'Sadness'
         else:
             logging.error("Invalid 3d plot sub-type: %s", subtype)
@@ -681,4 +632,4 @@ if __name__ == '__main__':
     app = configure_dashboard(data_elements)
 
     # run the server
-    app.run_server(host='0.0.0.0', port=8080, debug=False)
+    app.run_server(host='0.0.0.0', port=8080, debug=True, processes=4)
