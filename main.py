@@ -1,42 +1,7 @@
-
-
-#
-#
-# STARTER CODE
-#
-#
-from flask import Flask, render_template, request, jsonify
-import atexit
-import os
-import json
-
-
-if 'VCAP_SERVICES' in os.environ:
-    vcap = json.loads(os.getenv('VCAP_SERVICES'))
-    print('Found VCAP_SERVICES')
-    if 'cloudantNoSQLDB' in vcap:
-        creds = vcap['cloudantNoSQLDB'][0]['credentials']
-        user = creds['username']
-        password = creds['password']
-        url = 'https://' + creds['host']
-        # client = Cloudant(user, password, url=url, connect=True)
-        # db = client.create_database(db_name, throw_on_exists=False)
-# elif "CLOUDANT_URL" in os.environ:
-#     client = Cloudant(os.environ['CLOUDANT_USERNAME'], os.environ['CLOUDANT_PASSWORD'], url=os.environ['CLOUDANT_URL'], connect=True)
-#     db = client.create_database(db_name, throw_on_exists=False)
-elif os.path.isfile('vcap-local.json'):
-    with open('vcap-local.json') as f:
-        vcap = json.load(f)
-        print('Found local VCAP_SERVICES')
-        creds = vcap['services']['cloudantNoSQLDB'][0]['credentials']
-        user = creds['username']
-        password = creds['password']
-        # url = 'https://' + creds['host']
-        # client = Cloudant(user, password, url=url, connect=True)
-        # db = client.create_database(db_name, throw_on_exists=False)
-
 ##
 ## Imports
+
+# local files
 import markdown_text
 
 # Dash/plotly
@@ -58,7 +23,6 @@ logging.basicConfig(level=logging.INFO)
 
 # Colors
 from palettable.colorbrewer import qualitative as colors
-
 def getColorScale(colorCode, colorrange, nbins=50):
     cmap = cm.get_cmap(colorCode)
     gradient = np.linspace(colorrange[0], colorrange[1], nbins)
