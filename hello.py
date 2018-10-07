@@ -45,13 +45,11 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
-import colorlover as cl
 
 # Essentials
 import pandas as pd
 import numpy as np
 from pprint import pprint
-import json
 import logging
 from matplotlib import cm
 
@@ -68,9 +66,6 @@ def getColorScale(colorCode, colorrange, nbins=50):
     scale = [[x, y] for x, y in zip(gradient, colors)]
 
     return scale
-
-pprint(getColorScale('Reds', [0,1], 40))
-
 
 styles = {
     'pre': {
@@ -103,6 +98,7 @@ default_camera = {'eye':
                   }
 
 layout_3d = {}
+
 
 ##
 ## Helper functions:
