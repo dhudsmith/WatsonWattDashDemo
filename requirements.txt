@@ -7,3 +7,4 @@ palettable
 pandas
 numpy
 matplotlib
+ibm-cos-sdk
